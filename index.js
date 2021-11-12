@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 require ('dotenv').config();
 const { MongoClient } = require('mongodb');
+var ObjectId = require('mongodb').ObjectID;
 
 const port = process.env.PORT || 5000;
 
@@ -19,6 +20,7 @@ async function run() {
         const database = client.db('cameraStore');
         const productsCollection = database.collection('products');
         const reviewsCollection = database.collection('reviews');
+        const usersCollection = database.collection('users');
 
         // GET PRODUCTS API
         app.get('/products', async(req, res) => {
@@ -27,6 +29,14 @@ async function run() {
             res.send(products);
         })
 
+        // GET SINGLE PRODUCT API
+        app.get('/products/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await productsCollection.findOne(query);
+            res.json(result);
+            console.log(result);
+        })
 
         // GET REVIEW API
         app.get('/reviews', async(req, res) => {
@@ -47,6 +57,41 @@ async function run() {
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.json(product);
+        })
+
+        // POST USER API
+        app.post('/users', async(req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.json(result);
+            console.log(result);
+        })
+
+        // UPSERT USER DATA
+        app.put('/users', async(req, res) => {
+            const user = req.body;
+            const filter = {email: user.email};
+            const options = {upsert: true};
+            const updateDoc = {$set: user};
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        })
+
+        app.put('/users/admin', async(req, res) => {
+            const user = req.body;
+            const filter = {email: user.email};
+            const updateDoc = {$set: {role: 'admin'}}
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.json(result);
+        })
+
+        // DELETE PRODUCTS API
+        app.delete('/products/:id', async(req, res) => {
+           const id = req.params.id;
+           const query = {_id:ObjectId(id)};
+           const result = await productsCollection.deleteOne(query);
+           res.json(result);
+          
         })
     }
     finally{
