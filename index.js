@@ -146,8 +146,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Hello Logic Camera Store')
+    res.send('Hello Logic Camera Store, Welcome')
 })
+
 
 app.listen(port, () => {
     console.log(`listening at ${port}`)
