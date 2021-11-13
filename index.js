@@ -9,7 +9,7 @@ var ObjectId = require('mongodb').ObjectID;
 const port = process.env.PORT || 5000;
 
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+const serviceAccount = require('./logic-camera-store-firebase-adminsdk.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -43,6 +43,7 @@ async function run() {
         const productsCollection = database.collection('products');
         const reviewsCollection = database.collection('reviews');
         const usersCollection = database.collection('users');
+        const orderCollection = database.collection('order');
 
         // GET PRODUCTS API
         app.get('/products', async(req, res) => {
@@ -58,6 +59,15 @@ async function run() {
             const result = await productsCollection.findOne(query);
             res.json(result);
             console.log(result);
+        })
+
+        app.get('/order', async(req, res) => {
+            const email = req.query.email;
+            const query = {email: email};
+            const cursor = orderCollection.find(query);
+            const order = await cursor.toArray();
+            res.json(order);
+            console.log(order);
         })
 
         // GET REVIEW API
@@ -79,6 +89,13 @@ async function run() {
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.json(product);
+        })
+
+        app.post('/order', async(req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.json(result);
+            console.log(result);
         })
 
         app.get('/users/:email', async(req, res) => {
